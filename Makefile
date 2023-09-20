@@ -1,5 +1,5 @@
 run:
-	$(call with_path, cargo run)
+	cargo run
 
 clippy:
-	$(call with_path, cargo clippy)
+	cargo clippy
