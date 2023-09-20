@@ -1,6 +1,6 @@
 macro_rules! py_method {
 ($name:ident, $ret:ty) => {
-    pub(crate) fn $name(&self) -> $ret {
+    pub fn $name(&self) -> $ret {
         Python::with_gil(|py| {
             self.inner
                 .call_method1(py, stringify!($name), ())
@@ -12,7 +12,7 @@ macro_rules! py_method {
 };
 
 ($name:ident, $ret:ty, $into:ident) => {
-    pub(crate) fn $name(&self) -> $ret {
+    pub fn $name(&self) -> $ret {
         let inner = Python::with_gil(|py| {
             self.inner
                 .call_method1(py, stringify!($name), ())
@@ -24,7 +24,7 @@ macro_rules! py_method {
 };
 
 ($name:ident, $ret:ty, $($arg:ident => $arg_typ:ty)*) => {
-    pub(crate) fn $name(&self, $($arg: $arg_typ)*) -> $ret {
+    pub fn $name(&self, $($arg: $arg_typ)*) -> $ret {
         Python::with_gil(|py| {
             self.inner
                 .call_method1(py, stringify!($name), ($($arg,)*))
@@ -36,7 +36,7 @@ macro_rules! py_method {
 };
 
 ($name:ident, $ret:ty, $($arg:ident => $arg_typ:ty)*, $into:ident) => {
-    pub(crate) fn $name(&self, $($arg: $arg_typ)*) -> $ret {
+    pub fn $name(&self, $($arg: $arg_typ)*) -> $ret {
         let inner = Python::with_gil(|py| {
             self.inner
                 .call_method1(py, stringify!($name), ($($arg,)*))

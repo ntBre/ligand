@@ -3,13 +3,8 @@
 
 use anyhow::Result;
 
-use crate::{forcefield::ForceField, molecule::Molecule};
-
-#[macro_use]
-mod macros;
-
-pub mod forcefield;
-pub mod molecule;
+use ligand::forcefield::ForceField;
+use ligand::molecule::Molecule;
 
 fn main() -> Result<()> {
     let mol = Molecule::from_mapped_smiles("[Cl:2][C@:1]([F:3])([I:4])[H:5]")?;

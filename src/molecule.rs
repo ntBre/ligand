@@ -2,16 +2,18 @@ use anyhow::Result;
 use pyo3::prelude::*;
 
 #[derive(Debug, Clone)]
-pub(crate) struct Molecule {
+pub struct Molecule {
+    #[allow(unused)]
     pub(crate) inner: Py<PyAny>,
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct Topology {
+pub struct Topology {
     pub(crate) inner: Py<PyAny>,
 }
 
 impl Topology {
+    #[allow(unused)]
     pub(crate) fn new(inner: Py<PyAny>) -> Self {
         Self { inner }
     }
@@ -27,7 +29,8 @@ impl IntoPy<Py<PyAny>> for Topology {
 /// one molecule, so there should only be one entry in the list. that's why
 /// `get` first indexes list[0] and then the underlying dict
 #[derive(Debug, Clone)]
-pub(crate) struct Labels {
+pub struct Labels {
+    #[allow(unused)]
     pub(crate) inner: Py<PyAny>,
 }
 
@@ -36,7 +39,7 @@ impl Labels {
         Self { inner }
     }
 
-    pub(crate) fn get(&self, index: &'static str) -> Py<PyAny> {
+    pub fn get(&self, index: &'static str) -> Py<PyAny> {
         Python::with_gil(|py| {
             self.inner
                 .call_method1(py, "__getitem__", (0,))
@@ -48,7 +51,7 @@ impl Labels {
 }
 
 impl Molecule {
-    pub(crate) fn from_mapped_smiles(smiles: &str) -> Result<Self> {
+    pub fn from_mapped_smiles(smiles: &str) -> Result<Self> {
         let inner = Python::with_gil(|py| {
             let openff_toolkit = PyModule::import(py, "openff.toolkit")?;
             Ok::<_, anyhow::Error>(

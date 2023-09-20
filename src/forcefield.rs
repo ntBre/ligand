@@ -33,7 +33,7 @@ pub struct ParameterHandler {
 // }
 
 impl ForceField {
-    pub(crate) fn new(name: &str) -> anyhow::Result<Self> {
+    pub fn new(name: &str) -> anyhow::Result<Self> {
         let inner = Python::with_gil(|py| {
             let openff_toolkit = PyModule::import(py, "openff.toolkit")?;
             Ok::<_, anyhow::Error>(
