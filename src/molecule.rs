@@ -68,6 +68,31 @@ impl Molecule {
         Ok(Self { inner })
     }
 
+    pub fn to_svg(&self) -> String {
+        Python::with_gil(|py| {
+            let fun = PyModule::from_code(
+                py,
+                "def draw_rdkit(mol):
+    from rdkit.Chem.Draw import rdDepictor, rdMolDraw2D
+    rdmol = mol.to_rdkit()
+    rdDepictor.SetPreferCoordGen(True)
+    rdDepictor.Compute2DCoords(rdmol)
+    rdmol = rdMolDraw2D.PrepareMolForDrawing(rdmol)
+    drawer = rdMolDraw2D.MolDraw2DSVG(300, 300)
+    drawer.DrawMolecule(rdmol)
+    drawer.FinishDrawing()
+    return drawer.GetDrawingText()
+",
+                "",
+                "",
+            )
+            .unwrap()
+            .getattr("draw_rdkit")
+            .unwrap();
+            fun.call1((self.inner.clone(),)).unwrap().extract().unwrap()
+        })
+    }
+
     py_method! {to_inchi, String}
 
     py_method! {chemical_environment_matches, Vec<(usize, usize)>, query => &str}
