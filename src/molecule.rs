@@ -1,5 +1,5 @@
 use anyhow::Result;
-use pyo3::prelude::*;
+use pyo3::{prelude::*, types::IntoPyDict};
 
 #[derive(Debug, Clone)]
 pub struct Molecule {
@@ -54,12 +54,14 @@ impl Molecule {
     pub fn from_mapped_smiles(smiles: &str) -> Result<Self> {
         let inner = Python::with_gil(|py| {
             let openff_toolkit = PyModule::import(py, "openff.toolkit")?;
+            let kwargs = [("allow_undefined_stereo", true)].into_py_dict(py);
             Ok::<_, anyhow::Error>(
                 openff_toolkit
                     .getattr("Molecule")?
-                    .call_method1(
+                    .call_method(
                         "from_mapped_smiles",
                         (String::from(smiles),),
+                        Some(kwargs),
                     )?
                     .into(),
             )
