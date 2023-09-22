@@ -2,6 +2,8 @@ use pyo3::prelude::*;
 
 use crate::molecule::{Labels, Topology};
 
+use crate::openmm::System;
+
 #[derive(Debug)]
 pub struct ForceField {
     inner: Py<PyAny>,
@@ -24,13 +26,22 @@ impl ParameterType {
 }
 
 pub struct ParameterHandler {
-    _inner: Py<PyAny>,
+    #[allow(unused)]
+    inner: Py<PyAny>,
 }
 
-// impl ParameterHandler {
-//     pub(crate) fn parameters(&self) {
-//     }
-// }
+pub struct Interchange {
+    inner: Py<PyAny>,
+}
+
+impl Interchange {
+    pub fn to_openmm(&self) -> System {
+        let inner = Python::with_gil(|py| {
+            self.inner.call_method0(py, "to_openmm").unwrap()
+        });
+        System { inner }
+    }
+}
 
 impl ForceField {
     pub fn new(name: &str) -> anyhow::Result<Self> {
@@ -55,7 +66,18 @@ impl ForceField {
                 .call_method1(py, "get_parameter_handler", (typ.as_str(),))
                 .unwrap()
         });
-        ParameterHandler { _inner: inner }
+        ParameterHandler { inner }
+    }
+
+    pub fn create_interchange(
+        &self,
+        topology: Topology,
+    ) -> anyhow::Result<Interchange> {
+        let inner = Python::with_gil(|py| {
+            self.inner
+                .call_method1(py, "create_interchange", (topology.inner,))
+        })?;
+        Ok(Interchange { inner })
     }
 
     py_method! { label_molecules, Labels, top => Topology, into }
