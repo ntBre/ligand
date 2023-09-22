@@ -53,6 +53,15 @@ impl Labels {
 impl Molecule {
     pub fn from_mapped_smiles(smiles: &str) -> Result<Self> {
         let inner = Python::with_gil(|py| {
+            PyModule::from_code(
+                py,
+                r#"import logging
+logging.getLogger("openff").setLevel(logging.ERROR)
+    "#,
+                "",
+                "",
+            )
+            .unwrap();
             let openff_toolkit = PyModule::import(py, "openff.toolkit")?;
             let kwargs = [("allow_undefined_stereo", true)].into_py_dict(py);
             Ok::<_, anyhow::Error>(
