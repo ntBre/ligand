@@ -158,6 +158,8 @@ logging.getLogger("openff").setLevel(logging.ERROR)
 
     py_method! {to_inchi, String}
 
+    py_method! {to_inchikey, String}
+
     py_method! {chemical_environment_matches, Vec<(usize, usize)>, query => &str}
 
     py_method! {to_topology, Topology, into}
