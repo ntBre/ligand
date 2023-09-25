@@ -72,6 +72,7 @@ impl Context {
         Context { inner }
     }
 
+    /// call `self.setPositions` with `positions` assuming input in Bohr
     pub fn set_positions(&mut self, positions: Vec<f64>) {
         let positions: Vec<[f64; 3]> = positions
             .array_chunks::<3>()
@@ -82,7 +83,8 @@ impl Context {
                 py,
                 "def set_positions(ctx, positions):
     import openmm
-    ctx.setPositions((positions * openmm.unit.angstrom).in_units_of(openmm.unit.nanometer))
+    positions = (positions * openmm.unit.bohr).in_units_of(openmm.unit.nanometer)
+    ctx.setPositions(positions)
 ",
                 "",
                 "",
