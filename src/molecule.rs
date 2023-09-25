@@ -156,11 +156,54 @@ logging.getLogger("openff").setLevel(logging.ERROR)
         });
     }
 
-    py_method! {to_inchi, String}
+    /// calls `self.to_inchi(fixed_hydrogens=True)`
+    pub fn to_inchi(&self) -> String {
+        Python::with_gil(|py| {
+            let kwargs = [("fixed_hydrogens", true)].into_py_dict(py);
+            self.inner
+                .call_method(py, "to_inchi", (), Some(kwargs))
+                .unwrap()
+                .extract(py)
+                .unwrap()
+        })
+    }
 
     py_method! {to_inchikey, String}
 
     py_method! {chemical_environment_matches, Vec<(usize, usize)>, query => &str}
 
     py_method! {to_topology, Topology, into}
+
+    /// helper method for calling the Molecule.`method` constructors with kwargs
+    /// of `allow_undefined_stereo = True`
+    fn from_pattern(
+        method: &str,
+        pattern: &str,
+    ) -> std::result::Result<Molecule, anyhow::Error> {
+        let inner = Python::with_gil(|py| {
+            PyModule::from_code(
+                py,
+                r#"import logging
+logging.getLogger("openff").setLevel(logging.ERROR)
+    "#,
+                "",
+                "",
+            )
+            .unwrap();
+            let openff_toolkit = PyModule::import(py, "openff.toolkit")?;
+            let kwargs = [("allow_undefined_stereo", true)].into_py_dict(py);
+            Ok::<_, anyhow::Error>(
+                openff_toolkit
+                    .getattr("Molecule")?
+                    .call_method(
+                        method,
+                        (String::from(pattern),),
+                        Some(kwargs),
+                    )?
+                    .into(),
+            )
+        })?;
+
+        Ok(Self { inner })
+    }
 }
