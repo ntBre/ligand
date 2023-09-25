@@ -52,31 +52,118 @@ impl Labels {
 
 impl Molecule {
     pub fn from_mapped_smiles(smiles: &str) -> Result<Self> {
-        let inner = Python::with_gil(|py| {
-            PyModule::from_code(
-                py,
-                r#"import logging
-logging.getLogger("openff").setLevel(logging.ERROR)
-    "#,
-                "",
-                "",
-            )
-            .unwrap();
-            let openff_toolkit = PyModule::import(py, "openff.toolkit")?;
-            let kwargs = [("allow_undefined_stereo", true)].into_py_dict(py);
-            Ok::<_, anyhow::Error>(
-                openff_toolkit
-                    .getattr("Molecule")?
-                    .call_method(
-                        "from_mapped_smiles",
-                        (String::from(smiles),),
-                        Some(kwargs),
-                    )?
-                    .into(),
-            )
-        })?;
+        Self::from_pattern("from_mapped_smiles", smiles)
+    }
 
-        Ok(Self { inner })
+    pub fn from_inchi(inchi: &str) -> Result<Self> {
+        Self::from_pattern("from_inchi", inchi)
+    }
+
+    /// compute the RMSD between two conformers of `self` using the OpenEye
+    /// toolkit. the implementation is taken from ibstore
+    pub fn get_rmsd(&self, reference: Vec<f64>, target: Vec<f64>) -> f64 {
+        Python::with_gil(|py| {
+            let fun = PyModule::from_code(
+                py,
+                "def get_rmsd(molecule, reference, target):
+    from openeye import oechem
+    from openff.units import Quantity, unit
+    from openff.toolkit import Molecule
+    import numpy as np
+
+    reference = np.array(reference)
+    reference = np.reshape(reference, (-1, 3))
+
+    target = np.array(target)
+    target = np.reshape(target, (-1, 3))
+
+    molecule1 = Molecule(molecule)
+    molecule1.add_conformer(Quantity(reference, unit.angstrom))
+
+    molecule2 = Molecule(molecule)
+    molecule2.add_conformer(Quantity(target, unit.angstrom))
+
+    return oechem.OERMSD(
+        molecule1.to_openeye(),
+        molecule2.to_openeye(),
+        True,
+        True,
+        True,
+    )
+",
+                "",
+                "",
+            )
+            .unwrap()
+            .getattr("get_rmsd")
+            .unwrap();
+            fun.call1((&self.inner, reference, target))
+                .unwrap()
+                .extract()
+                .unwrap()
+        })
+    }
+
+    /// compute the TFD between two conformers of `self` using the OpenEye
+    /// toolkit. the implementation is taken from ibstore
+    pub fn get_tfd(
+        &self,
+        reference: Vec<f64>,
+        target: Vec<f64>,
+    ) -> anyhow::Result<f64> {
+        Python::with_gil(|py| {
+            let fun = PyModule::from_code(
+                py,
+                "def get_tfd(molecule, reference, target):
+    from openff.toolkit import Molecule
+    import numpy as np
+    def _rdmol(molecule, conformer):
+        from copy import deepcopy
+        from openff.units import Quantity, unit
+
+        molecule = deepcopy(molecule)
+        molecule.add_conformer(
+            Quantity(conformer, unit.angstrom),
+        )
+        return molecule.to_rdkit()
+
+    from rdkit.Chem import TorsionFingerprints
+
+    reference = np.array(reference)
+    reference = np.reshape(reference, (-1, 3))
+
+    target = np.array(target)
+    target = np.reshape(target, (-1, 3))
+
+    return TorsionFingerprints.GetTFDBetweenMolecules(
+        _rdmol(molecule, reference),
+        _rdmol(molecule, target),
+    )
+",
+                "",
+                "",
+            )?
+            .getattr("get_tfd")?;
+            Ok(fun.call1((&self.inner, reference, target))?.extract()?)
+        })
+    }
+
+    /// calls the static method Molecule.are_isomorphic, which returns
+    /// `(molecules_are_isomorphic, atom_map)` and returns whether or not
+    /// `molecules_are_isomorphic` (the first element of the returned tuple)
+    pub fn is_isomorphic(&self, other: Self) -> bool {
+        Python::with_gil(|py| {
+            let openff_toolkit =
+                PyModule::import(py, "openff.toolkit").unwrap();
+            let molecule = openff_toolkit.getattr("Molecule").unwrap();
+            molecule
+                .call_method1("are_isomorphic", (&self.inner, other.inner))
+                .unwrap()
+                .get_item(0)
+                .unwrap()
+                .extract()
+                .unwrap()
+        })
     }
 
     pub fn to_mapped_smiles(&self) -> String {
