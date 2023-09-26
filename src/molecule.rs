@@ -3,7 +3,6 @@ use pyo3::{prelude::*, types::IntoPyDict};
 
 #[derive(Debug, Clone)]
 pub struct Molecule {
-    #[allow(unused)]
     pub(crate) inner: Py<PyAny>,
 }
 
@@ -13,7 +12,6 @@ pub struct Topology {
 }
 
 impl Topology {
-    #[allow(unused)]
     pub(crate) fn new(inner: Py<PyAny>) -> Self {
         Self { inner }
     }
@@ -30,7 +28,6 @@ impl IntoPy<Py<PyAny>> for Topology {
 /// `get` first indexes list[0] and then the underlying dict
 #[derive(Debug, Clone)]
 pub struct Labels {
-    #[allow(unused)]
     pub(crate) inner: Py<PyAny>,
 }
 

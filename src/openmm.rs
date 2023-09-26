@@ -1,7 +1,6 @@
 use pyo3::{types::PyModule, IntoPy, Py, PyAny, PyObject, Python};
 
 pub struct System {
-    #[allow(unused)]
     pub(crate) inner: Py<PyAny>,
 }
 
