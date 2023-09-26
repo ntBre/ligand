@@ -3,7 +3,7 @@ use pyo3::types::IntoPyDict;
 
 use crate::molecule::{Labels, Topology};
 
-use crate::openmm::System;
+use crate::openmm::{self, System};
 
 pub enum ParameterType {
     Bonds,
@@ -42,7 +42,7 @@ impl Interchange {
         todo!();
     }
 
-    pub fn to_openmm_topology(&self) {
+    pub fn to_openmm_topology(&self) -> openmm::Topology {
         todo!()
     }
 }

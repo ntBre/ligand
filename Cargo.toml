@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.75"
 pyo3 = { version = "0.19.2", features = ["auto-initialize"] }
+rdkit-wrapper = { path = "../../../Projects/rdkit-wrapper" }

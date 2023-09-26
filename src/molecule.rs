@@ -58,6 +58,17 @@ pub struct Molecule {
     pub(crate) inner: Py<PyAny>,
 }
 
+impl From<rdkit_wrapper::RWMol> for Molecule {
+    fn from(rdmol: rdkit_wrapper::RWMol) -> Self {
+        let inner = Python::with_gil(|py| {
+            let tk = PyModule::import(py, "openff.toolkit").unwrap();
+            let fun = tk.getattr("Molecule").unwrap();
+            fun.call1((rdmol,)).unwrap().into()
+        });
+        Self { inner }
+    }
+}
+
 impl Molecule {
     pub fn from_mapped_smiles(smiles: &str) -> Result<Self> {
         Self::from_pattern("from_mapped_smiles", smiles)

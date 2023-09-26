@@ -5,7 +5,7 @@ use pyo3::{types::PyModule, IntoPy, Py, PyAny, PyObject, Python};
 pub struct Modeller;
 
 impl Modeller {
-    pub fn new(_topology: (), _positions: ()) -> Self {
+    pub fn new(_topology: Topology, _positions: ()) -> Self {
         todo!()
     }
 
