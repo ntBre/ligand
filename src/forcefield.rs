@@ -22,7 +22,6 @@ impl ParameterType {
 }
 
 pub struct ParameterHandler {
-    #[allow(unused)]
     inner: Py<PyAny>,
 }
 
@@ -93,15 +92,71 @@ impl ForceField {
     py_method! { label_molecules, Labels, top => Topology, into }
 
     pub fn bonds(&self) -> Vec<Bond> {
-        todo!();
+        let ph = self.get_parameter_handler(ParameterType::Bonds);
+        Python::with_gil(|py| {
+            let fun = PyModule::from_code(
+                py,
+                r#"def get_bonds(h):
+    bonds = []
+    for b in h:
+        got = getattr(b, "_parameterize", None)
+        bonds.append({"parameterize": got, "value": b.length.magnitude, "unit": "angstrom"})
+    return bonds
+            "#,
+                "",
+                "",
+            )
+            .unwrap()
+            .getattr("get_bonds")
+            .unwrap();
+            fun.call1((ph.inner,)).unwrap().extract().unwrap()
+        })
     }
 
     pub fn angles(&self) -> Vec<Angle> {
-        todo!();
+        let ph = self.get_parameter_handler(ParameterType::Angles);
+        Python::with_gil(|py| {
+            let fun = PyModule::from_code(
+                py,
+                r#"def get_angles(h):
+    angles = []
+    #for b in h:
+    #    got = getattr(b, "_parameterize", None)
+    #    angles.append({"parameterize": got, "value": b.angle.magnitude, "unit": "angstrom"})
+    #print(angles)
+    return angles
+            "#,
+                "",
+                "",
+            )
+            .unwrap()
+            .getattr("get_angles")
+            .unwrap();
+            fun.call1((ph.inner,)).unwrap().extract().unwrap()
+        })
     }
 
     pub fn proper_torsions(&self) -> Vec<ProperTorsion> {
-        todo!();
+        let ph = self.get_parameter_handler(ParameterType::Torsions);
+        Python::with_gil(|py| {
+            let fun = PyModule::from_code(
+                py,
+                r#"def get_propertorsions(h):
+    propertorsions = []
+    for b in h:
+        got = getattr(b, "_parameterize", None)
+        propertorsions.append({"parameterize": got, "value": b.value.magnitude, "unit": "angstrom"})
+    print(propertorsions)
+    return propertorsions
+            "#,
+                "",
+                "",
+            )
+            .unwrap()
+            .getattr("get_propertorsions")
+            .unwrap();
+            fun.call1((ph.inner,)).unwrap().extract().unwrap()
+        })
     }
 
     pub fn to_xml(&self) -> String {
@@ -109,23 +164,35 @@ impl ForceField {
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct Unit;
+#[derive(FromPyObject, Clone, Debug)]
+pub struct Unit(String);
 
+#[derive(FromPyObject, Debug)]
 pub struct Bond {
+    #[pyo3(item)]
     pub parameterize: Option<String>,
+    #[pyo3(item)]
     pub value: f64,
+    #[pyo3(item)]
     pub unit: Unit,
 }
 
+#[derive(FromPyObject)]
 pub struct Angle {
+    #[pyo3(item)]
     pub parameterize: Option<String>,
+    #[pyo3(item)]
     pub value: f64,
+    #[pyo3(item)]
     pub unit: Unit,
 }
 
+#[derive(FromPyObject)]
 pub struct ProperTorsion {
+    #[pyo3(item)]
     pub parameterize: Option<String>,
+    #[pyo3(item)]
     pub value: f64,
+    #[pyo3(item)]
     pub unit: Unit,
 }
