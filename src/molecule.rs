@@ -60,7 +60,8 @@ impl Molecule {
     }
 
     /// compute the RMSD between two conformers of `self` using the OpenEye
-    /// toolkit. the implementation is taken from ibstore
+    /// toolkit. the implementation is taken from ibstore. Note that `reference`
+    /// is expected to be in units of Bohr, while target is in Ångstroms
     pub fn get_rmsd(&self, reference: Vec<f64>, target: Vec<f64>) -> f64 {
         Python::with_gil(|py| {
             let fun = PyModule::from_code(
@@ -70,7 +71,9 @@ impl Molecule {
     from openff.units import Quantity, unit
     from openff.toolkit import Molecule
     import numpy as np
+    from copy import deepcopy
 
+    molecule = deepcopy(molecule)
     reference = np.array(reference)
     reference = np.reshape(reference, (-1, 3))
 
@@ -78,18 +81,21 @@ impl Molecule {
     target = np.reshape(target, (-1, 3))
 
     molecule1 = Molecule(molecule)
-    molecule1.add_conformer(Quantity(reference, unit.angstrom))
+    q = Quantity(reference, unit.bohr).to('angstrom')
+    molecule1.add_conformer(q)
 
     molecule2 = Molecule(molecule)
-    molecule2.add_conformer(Quantity(target, unit.angstrom))
+    r = Quantity(target, unit.angstrom)
+    molecule2.add_conformer(r)
 
-    return oechem.OERMSD(
+    ret = oechem.OERMSD(
         molecule1.to_openeye(),
         molecule2.to_openeye(),
         True,
         True,
         True,
     )
+    return ret
 ",
                 "",
                 "",
