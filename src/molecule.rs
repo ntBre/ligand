@@ -2,11 +2,6 @@ use anyhow::Result;
 use pyo3::{prelude::*, types::IntoPyDict};
 
 #[derive(Debug, Clone)]
-pub struct Molecule {
-    pub(crate) inner: Py<PyAny>,
-}
-
-#[derive(Debug, Clone)]
 pub struct Topology {
     pub(crate) inner: Py<PyAny>,
 }
@@ -45,6 +40,11 @@ impl Labels {
                 .unwrap()
         })
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct Molecule {
+    pub(crate) inner: Py<PyAny>,
 }
 
 impl Molecule {
