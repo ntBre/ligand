@@ -1,4 +1,50 @@
+use std::path::Path;
+
 use pyo3::{types::PyModule, IntoPy, Py, PyAny, PyObject, Python};
+
+pub struct Modeller;
+
+impl Modeller {
+    pub fn new(_topology: (), _positions: ()) -> Self {
+        todo!()
+    }
+
+    pub fn get_topology(&self) -> Topology {
+        todo!()
+    }
+}
+
+pub struct Topology;
+
+impl Topology {
+    pub fn atoms(&self) -> () {
+        todo!()
+    }
+}
+
+pub struct PDBFile;
+
+impl PDBFile {
+    pub fn new(_filename: impl AsRef<Path>) -> Self {
+        todo!()
+    }
+
+    pub fn topology(&self) -> Topology {
+        todo!();
+    }
+
+    pub fn positions(&self) {
+        todo!();
+    }
+}
+
+pub struct Simulation;
+
+impl Simulation {
+    pub fn context(&self) -> Context {
+        todo!();
+    }
+}
 
 pub struct System {
     pub(crate) inner: Py<PyAny>,
@@ -32,6 +78,12 @@ impl IntoPy<PyObject> for Integrator {
 
 pub enum Platform {
     Reference,
+}
+
+impl Platform {
+    pub fn by_name(_name: &str) -> Self {
+        todo!();
+    }
 }
 
 impl IntoPy<PyObject> for Platform {

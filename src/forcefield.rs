@@ -1,13 +1,9 @@
 use pyo3::prelude::*;
+use pyo3::types::IntoPyDict;
 
 use crate::molecule::{Labels, Topology};
 
 use crate::openmm::System;
-
-#[derive(Debug)]
-pub struct ForceField {
-    inner: Py<PyAny>,
-}
 
 pub enum ParameterType {
     Bonds,
@@ -41,16 +37,30 @@ impl Interchange {
         });
         System { inner }
     }
+
+    pub fn virtual_sites(&self) -> Vec<()> {
+        todo!();
+    }
+
+    pub fn to_openmm_topology(&self) {
+        todo!()
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct ForceField {
+    inner: Py<PyAny>,
 }
 
 impl ForceField {
     pub fn new(name: &str) -> anyhow::Result<Self> {
         let inner = Python::with_gil(|py| {
             let openff_toolkit = PyModule::import(py, "openff.toolkit")?;
+            let kwargs = [("allow_cosmetic_attributes", true)].into_py_dict(py);
             Ok::<_, anyhow::Error>(
                 openff_toolkit
                     .getattr("ForceField")?
-                    .call1((String::from(name),))?
+                    .call((String::from(name),), Some(kwargs))?
                     .into(),
             )
         })?;
@@ -81,4 +91,41 @@ impl ForceField {
     }
 
     py_method! { label_molecules, Labels, top => Topology, into }
+
+    pub fn bonds(&self) -> Vec<Bond> {
+        todo!();
+    }
+
+    pub fn angles(&self) -> Vec<Angle> {
+        todo!();
+    }
+
+    pub fn proper_torsions(&self) -> Vec<ProperTorsion> {
+        todo!();
+    }
+
+    pub fn to_xml(&self) -> String {
+        todo!();
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Unit;
+
+pub struct Bond {
+    pub parameterize: Option<String>,
+    pub value: f64,
+    pub unit: Unit,
+}
+
+pub struct Angle {
+    pub parameterize: Option<String>,
+    pub value: f64,
+    pub unit: Unit,
+}
+
+pub struct ProperTorsion {
+    pub parameterize: Option<String>,
+    pub value: f64,
+    pub unit: Unit,
 }

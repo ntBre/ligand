@@ -1,5 +1,9 @@
+use std::path::Path;
+
 use anyhow::Result;
 use pyo3::{prelude::*, types::IntoPyDict};
+
+use crate::openmm;
 
 #[derive(Debug, Clone)]
 pub struct Topology {
@@ -9,6 +13,13 @@ pub struct Topology {
 impl Topology {
     pub(crate) fn new(inner: Py<PyAny>) -> Self {
         Self { inner }
+    }
+
+    pub fn from_openmm(
+        _topology: &openmm::Topology,
+        _molecules: Vec<Molecule>,
+    ) -> Self {
+        todo!();
     }
 }
 
@@ -54,6 +65,13 @@ impl Molecule {
 
     pub fn from_inchi(inchi: &str) -> Result<Self> {
         Self::from_pattern("from_inchi", inchi)
+    }
+
+    /// this is a bit of a stretch to use from_pattern here, but `from_file`
+    /// does indeed take allow_undefined_stereo as a kwarg
+    pub fn from_file(filename: impl AsRef<Path>) -> Result<Self> {
+        let filename = filename.as_ref().to_str().unwrap();
+        Self::from_pattern("from_file", filename)
     }
 
     /// compute the RMSD between two conformers of `self` using the OpenEye
