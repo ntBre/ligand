@@ -55,7 +55,7 @@ impl Labels {
 
 #[derive(Debug, Clone)]
 pub struct Molecule {
-    pub(crate) inner: Py<PyAny>,
+    pub inner: Py<PyAny>,
 }
 
 impl From<rdkit_wrapper::RWMol> for Molecule {
